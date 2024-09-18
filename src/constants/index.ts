@@ -30,8 +30,8 @@ export const Motions: {
   },
   {
     id: Math.floor(Math.random() * 100),
-    motionName: "Move y by 50 x by 30",
-    action: { x: 30, y: 50, rotate: 0 },
+    motionName: "Move x by -50 y by 30",
+    action: { x: -50, y: 30, rotate: 0 },
   },
   {
     id: Math.floor(Math.random() * 100),

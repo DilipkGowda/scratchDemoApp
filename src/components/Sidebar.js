@@ -59,7 +59,7 @@ export default function Sidebar({
             <div
               className={`h-30 w-30 ${
                 selectedIndex === index + 1 ? "bg-teal-300" : "bg-transparent"
-              } border`}
+              } border cursor-pointer`}
               onClick={() => {
                 setSelectedIndex(index + 1);
                 if (actions[index]) {
@@ -103,12 +103,12 @@ export default function Sidebar({
               ))}
           </div>
           <div
-            className="w-3/4 h-[30px] bg-black text-white justify-center items-center text-center flex self-center absolute bottom-7 cursor-pointer"
+            className={`w-3/4 h-[30px] ${selectedActions.length ? "bg-black cursor-pointer" : "bg-gray-500 cursor-not-allowed"} text-white justify-center items-center text-center flex self-center absolute bottom-7`}
             onClick={() => {
               handleOnAddAction(selectedActions);
             }}
           >
-            {"Add Action"}
+            {"Done"}
           </div>
         </div>
       </div>

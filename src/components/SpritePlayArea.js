@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Suspense, lazy } from "react";
 
-export default function MidArea({ sprites, setPlay, play }) {
+const Sprite = lazy(() => import("./Sprite"));
+
+export default function SpritePlayArea({ sprites, setPlay, play }) {
   const [positions, setPositions] = useState({});
   const [motions, setMotions] = useState({});
-  const spriteRefs = useRef([]); // Array of refs for sprites
-  const collisionDetectedRef = useRef(false); // Control collision flag using ref
+  const spriteRefs = useRef([]);
+  const collisionDetectedRef = useRef(false);
 
   const checkCollision = (rect1, rect2) => {
     return (
@@ -18,14 +20,13 @@ export default function MidArea({ sprites, setPlay, play }) {
   useEffect(() => {
     let timers = [];
     let spriteStates = sprites.map((sprite) => {
-      const repeat =
-        sprite?.motions?.filter((motion) => motion.motionName === "Repeat") ||
-        [];
-
+      const repeat = sprite?.motions?.some(
+        (motion) => motion.motionName === "Repeat"
+      );
       return {
         id: sprite.id,
         motions: sprite?.motions ? [...sprite.motions] : [],
-        repeat: !!repeat.length,
+        repeat,
       };
     });
 
@@ -44,11 +45,7 @@ export default function MidArea({ sprites, setPlay, play }) {
             rotate: currentPosition.rotate + (motion.action.rotate ?? 0),
           };
 
-          setPositions((prev) => ({
-            ...prev,
-            [sprite.id]: currentPosition,
-          }));
-
+          setPositions((prev) => ({ ...prev, [sprite.id]: currentPosition }));
           setMotions((prev) => ({
             ...prev,
             [sprite.id]: `translate(${currentPosition.x}px, ${currentPosition.y}px) rotate(${currentPosition.rotate}deg)`,
@@ -94,7 +91,6 @@ export default function MidArea({ sprites, setPlay, play }) {
         const repeatTimerId = setTimeout(() => {
           animateSprite(sprite, index, currentPosition);
         }, totalDelay);
-
         timers.push(repeatTimerId);
       }
     };
@@ -110,7 +106,7 @@ export default function MidArea({ sprites, setPlay, play }) {
     return () => {
       timers.forEach((timerId) => clearTimeout(timerId));
     };
-  }, [play, sprites]); // Removed positions and collisionDetected from dependencies
+  }, [play, sprites]);
 
   return (
     <div className="h-full w-full flex justify-center flex-col">
@@ -121,25 +117,16 @@ export default function MidArea({ sprites, setPlay, play }) {
         {play ? "Stop" : "Play"}
       </div>
       <div className="flex-1 h-full overflow-auto flex justify-center items-center">
-        {!!sprites.length &&
-          sprites.map((sprite, index) => (
-            <div
-              key={sprite?.id + "wrapper"}
+        <Suspense fallback={<div>Loading sprites...</div>}>
+          {sprites.map((sprite, index) => (
+            <Sprite
+              key={sprite.id + "wrapper"}
               ref={(el) => (spriteRefs.current[index] = el)}
-              className="flex-none overflow-y-auto p-2"
-              style={{
-                transform: play && motions[sprite.id] ? motions[sprite.id] : "",
-                transition: "transform 1s linear",
-              }}
-            >
-              <img
-                key={sprite.id}
-                src={sprite.sprite}
-                alt="Sprite"
-                className="aspect-square w-[150px] h-[100px]"
-              />
-            </div>
+              sprite={sprite}
+              motion={play ? motions[sprite.id] : ""}
+            />
           ))}
+        </Suspense>
       </div>
     </div>
   );
