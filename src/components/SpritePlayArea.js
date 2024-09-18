@@ -1,25 +1,40 @@
 import { useEffect, useRef, useState } from "react";
-import { deepClone } from "../utils/shared";
 
-export default function SpritePlayArea({ sprites, setPlay, play }) {
-  const [motions, setMotions] = useState({});
+export default function MidArea({ sprites, setPlay, play }) {
   const [positions, setPositions] = useState({});
-  const spriteRefs = useRef([]);
+  const [motions, setMotions] = useState({});
+  const spriteRefs = useRef([]); // Array of refs for sprites
+  const collisionDetectedRef = useRef(false); // Control collision flag using ref
+
+  const checkCollision = (rect1, rect2) => {
+    return (
+      rect1.x < rect2.x + rect2.width &&
+      rect1.x + rect1.width > rect2.x &&
+      rect1.y < rect2.y + rect2.height &&
+      rect1.y + rect1.height > rect2.y
+    );
+  };
 
   useEffect(() => {
     let timers = [];
+    let spriteStates = sprites.map((sprite) => {
+      const repeat =
+        sprite?.motions?.filter((motion) => motion.motionName === "Repeat") ||
+        [];
 
-    const animateSprite = (sprite, position) => {
-      let totalDelay = 0;
-      let currentPosition = position || { x: 0, y: 0, rotate: 0 };
-      let spriteStates = sprites.map((sprite) => ({
+      return {
         id: sprite.id,
-        motions: [...sprite.motions], // Clone motions to avoid modifying original data
-        repeat: sprite.repeat,
-      }));
+        motions: sprite?.motions ? [...sprite.motions] : [],
+        repeat: !!repeat.length,
+      };
+    });
 
-      sprite.motions.forEach((motion, index) => {
-        const delay = index * 500;
+    const animateSprite = (sprite, index, currPos) => {
+      let totalDelay = 0;
+      let currentPosition = currPos || { x: 0, y: 0, rotate: 0 };
+
+      sprite.motions.forEach((motion, motionIndex) => {
+        const delay = motionIndex * 1000;
         totalDelay += delay;
 
         const timerId = setTimeout(() => {
@@ -39,34 +54,34 @@ export default function SpritePlayArea({ sprites, setPlay, play }) {
             [sprite.id]: `translate(${currentPosition.x}px, ${currentPosition.y}px) rotate(${currentPosition.rotate}deg)`,
           }));
 
-          const currentSpriteRect = document
-            .getElementById(sprite.id)
-            ?.getBoundingClientRect();
-          for (let i = 0; i < sprites.length - 1; i++) {
-            if (i !== index) {
-              const otherSpriteRect = document
-                .getElementById(sprites[i].id)
-                ?.getBoundingClientRect();
-              console.log("otherSpriteRect", {
-                otherSpriteRect,
-                currentSpriteRect,
-              });
+          const currentSpriteRect =
+            spriteRefs.current[index]?.getBoundingClientRect();
+          for (let i = 0; i < spriteRefs.current.length; i++) {
+            if (i !== index && !collisionDetectedRef.current) {
+              const otherSpriteRect =
+                spriteRefs.current[i]?.getBoundingClientRect();
               if (
                 otherSpriteRect &&
                 currentSpriteRect &&
                 checkCollision(currentSpriteRect, otherSpriteRect)
               ) {
+                collisionDetectedRef.current = true;
+
                 const otherSprite = spriteStates.find(
                   (s) => s.id === sprites[i].id
                 );
-                if (otherSprite && spriteStates[index]?.motions) {
+                if (otherSprite) {
                   const tempMotions = [...spriteStates[index].motions];
                   spriteStates[index].motions = [...spriteStates[i].motions];
                   spriteStates[i].motions = [...tempMotions];
 
-                  animateSprite(spriteStates[index], index);
-                  animateSprite(spriteStates[i], i);
+                  animateSprite(spriteStates[index], index, currentPosition);
+                  animateSprite(spriteStates[i], i, currentPosition);
                 }
+
+                setTimeout(() => {
+                  collisionDetectedRef.current = false;
+                }, 1000);
               }
             }
           }
@@ -74,9 +89,10 @@ export default function SpritePlayArea({ sprites, setPlay, play }) {
 
         timers.push(timerId);
       });
+
       if (sprite.repeat) {
         const repeatTimerId = setTimeout(() => {
-          animateSprite(sprite, currentPosition);
+          animateSprite(sprite, index, currentPosition);
         }, totalDelay);
 
         timers.push(repeatTimerId);
@@ -84,29 +100,17 @@ export default function SpritePlayArea({ sprites, setPlay, play }) {
     };
 
     if (play && sprites.length) {
-      sprites.forEach((sprite) => {
-        const repeat =
-          sprite?.motions?.filter((motion) => motion.motionName === "Repeat") ||
-          [];
-        if (sprite?.motions?.length) {
-          animateSprite({ ...sprite, repeat: !!repeat.length });
+      spriteStates.forEach((sprite, index) => {
+        if (sprite.motions.length) {
+          animateSprite(sprite, index);
         }
       });
     }
+
     return () => {
       timers.forEach((timerId) => clearTimeout(timerId));
     };
-  }, [play, sprites]);
-
-  const checkCollision = (rect1, rect2) => {
-    console.log("rect1, rect2", { rect1, rect2 });
-    return (
-      rect1.left < rect2.right &&
-      rect1.right > rect2.left &&
-      rect1.top < rect2.bottom &&
-      rect1.bottom > rect2.top
-    );
-  };
+  }, [play, sprites]); // Removed positions and collisionDetected from dependencies
 
   return (
     <div className="h-full w-full flex justify-center flex-col">
@@ -120,20 +124,19 @@ export default function SpritePlayArea({ sprites, setPlay, play }) {
         {!!sprites.length &&
           sprites.map((sprite, index) => (
             <div
-              ref={(el) => (spriteRefs.current[index] = el)}
-              id={sprite?.id}
               key={sprite?.id + "wrapper"}
+              ref={(el) => (spriteRefs.current[index] = el)}
               className="flex-none overflow-y-auto p-2"
               style={{
                 transform: play && motions[sprite.id] ? motions[sprite.id] : "",
-                transition: play && "transform 0.6s linear",
+                transition: "transform 1s linear",
               }}
             >
               <img
                 key={sprite.id}
                 src={sprite.sprite}
                 alt="Sprite"
-                className="aspect-square w-[100] h-[100px]"
+                className="aspect-square w-[150px] h-[100px]"
               />
             </div>
           ))}
