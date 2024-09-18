@@ -50,7 +50,6 @@
 
 // src/context/SpritesContext.tsx
 import React, { createContext, useState, ReactNode } from "react";
-import Cat from "../assests/images/cat.svg";
 interface Movement {
   type: "move" | "turn" | "goTo" | "repeat";
   value: number | { x: number; y: number };
