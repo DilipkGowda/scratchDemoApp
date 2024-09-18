@@ -6,7 +6,6 @@ export default function SpritePlayArea({ sprites, setPlay, play }) {
   const [positions, setPositions] = useState({});
   const spriteRefs = useRef([]);
 
-  console.log("spriteRefs", spriteRefs.current);
   useEffect(() => {
     let timers = [];
 
@@ -39,33 +38,32 @@ export default function SpritePlayArea({ sprites, setPlay, play }) {
             ...prev,
             [sprite.id]: `translate(${currentPosition.x}px, ${currentPosition.y}px) rotate(${currentPosition.rotate}deg)`,
           }));
-          
-          const currentSpriteRect =
-            spriteRefs.current[index]?.getBoundingClientRect();
-          for (let i = 0; i < spriteRefs.current.length; i++) {
+
+          const currentSpriteRect = document
+            .getElementById(sprite.id)
+            ?.getBoundingClientRect();
+          for (let i = 0; i < sprites.length - 1; i++) {
             if (i !== index) {
-              const otherSpriteRect =
-                spriteRefs.current[i]?.getBoundingClientRect();
-              console.log(
-                "positions",
-                checkCollision(currentSpriteRect, otherSpriteRect)
-              );
+              const otherSpriteRect = document
+                .getElementById(sprites[i].id)
+                ?.getBoundingClientRect();
+              console.log("otherSpriteRect", {
+                otherSpriteRect,
+                currentSpriteRect,
+              });
               if (
                 otherSpriteRect &&
                 currentSpriteRect &&
                 checkCollision(currentSpriteRect, otherSpriteRect)
               ) {
-                // Swap animations when a collision is detected
                 const otherSprite = spriteStates.find(
                   (s) => s.id === sprites[i].id
                 );
-                if (otherSprite) {
-                  // Swap motions
+                if (otherSprite && spriteStates[index]?.motions) {
                   const tempMotions = [...spriteStates[index].motions];
                   spriteStates[index].motions = [...spriteStates[i].motions];
                   spriteStates[i].motions = [...tempMotions];
 
-                  // Restart the animations for both characters after swap
                   animateSprite(spriteStates[index], index);
                   animateSprite(spriteStates[i], i);
                 }
@@ -123,6 +121,7 @@ export default function SpritePlayArea({ sprites, setPlay, play }) {
           sprites.map((sprite, index) => (
             <div
               ref={(el) => (spriteRefs.current[index] = el)}
+              id={sprite?.id}
               key={sprite?.id + "wrapper"}
               className="flex-none overflow-y-auto p-2"
               style={{
