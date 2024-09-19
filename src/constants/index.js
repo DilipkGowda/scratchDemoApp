@@ -8,11 +8,7 @@ export const sprites = [
   { id: Math.floor(Math.random() * 100), sprite: Man3, isAdded: false },
 ];
 
-export const Motions: {
-  id: number;
-  motionName: string;
-  action: { x: number; y: number; rotate: number };
-}[] = [
+export const Motions = [
   {
     id: Math.floor(Math.random() * 100),
     motionName: "Move x by 50 steps",

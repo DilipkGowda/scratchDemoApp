@@ -1,18 +1,19 @@
-import React from "react";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Motions } from "../constants";
+import { SpriteContext } from "../context/SpriteContext";
 import { deepClone } from "../utils/shared";
 
-export default function Sidebar({
-  handleOnAddAction,
-  actions,
-  setSelectedActions,
-  selectedActions,
-}) {
-  // const [selectedActions, setSelectedActions] = useState([]);
+export default function Sidebar() {
   const [dragData, setDragData] = useState({});
-  const [existingAction, setExistingAction] = useState("");
+  const {
+    handleOnAddAction,
+    actions,
+    setSelectedActions,
+    selectedActions,
+    selectedSprite,
+  } = useContext(SpriteContext);
   const [selectedIndex, setSelectedIndex] = useState(actions.length + 1 || 1);
+
   function handleDragStart(e, data) {
     setDragData(data);
   }
@@ -46,8 +47,8 @@ export default function Sidebar({
             <div
               key={motion.id + "motion" + index}
               draggable
-              onDragStart={(e) => handleDragStart(e, motion)}
               className="flex flex-row flex-wrap bg-blue-500 text-white px-2 py-1 my-2 text-sm cursor-move"
+              onDragStart={(e) => handleDragStart(e, motion)}
             >
               {motion.motionName}
             </div>
@@ -75,7 +76,7 @@ export default function Sidebar({
             onDragOver={handleDragOver}
             onDrop={() => handleDrop("Action")}
           >
-            {!!selectedActions.length &&
+            {!!selectedActions?.length &&
               selectedActions.map((motion, index) => (
                 <div
                   key={motion.id + "action" + index}
@@ -103,9 +104,14 @@ export default function Sidebar({
               ))}
           </div>
           <div
-            className={`w-3/4 h-[30px] ${selectedActions.length ? "bg-black cursor-pointer" : "bg-gray-500 cursor-not-allowed"} text-white justify-center items-center text-center flex self-center absolute bottom-7`}
+            className={`w-3/4 h-[30px] ${
+              selectedActions.length && selectedSprite?.id
+                ? "bg-black cursor-pointer"
+                : "bg-gray-500 cursor-not-allowed"
+            } text-white justify-center items-center text-center flex self-center absolute bottom-7`}
             onClick={() => {
-              handleOnAddAction(selectedActions);
+              if (!(selectedActions.length && selectedSprite?.id)) return;
+              handleOnAddAction(selectedActions, `Action ${selectedIndex}`);
             }}
           >
             {"Done"}

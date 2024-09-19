@@ -1,4 +1,4 @@
-function deepClone(value: Object | []) {
+function deepClone(value) {
     return JSON.parse(JSON.stringify(value))
 }
 

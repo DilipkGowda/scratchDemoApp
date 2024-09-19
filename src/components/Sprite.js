@@ -7,13 +7,13 @@ const Sprite = React.forwardRef(({ sprite, motion }, ref) => {
       className="flex-none overflow-y-auto p-2"
       style={{
         transform: motion ? motion : "",
-        transition: "transform 1s linear",
+        transition: motion && "transform 1s linear",
       }}
     >
       <img
         src={sprite.sprite}
         alt="Sprite"
-        className="aspect-square w-[150px] h-[100px]"
+        className="aspect-square w-[100px] h-[100px]"
       />
     </div>
   );

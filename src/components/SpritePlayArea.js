@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState, Suspense, lazy } from "react";
+import { useEffect, useRef, useState, lazy, useContext, Suspense } from "react";
+import { SpriteContext } from "../context/SpriteContext";
 
 const Sprite = lazy(() => import("./Sprite"));
 
-export default function SpritePlayArea({ sprites, setPlay, play }) {
-  const [positions, setPositions] = useState({});
+export default function SpritePlayArea() {
   const [motions, setMotions] = useState({});
   const spriteRefs = useRef([]);
   const collisionDetectedRef = useRef(false);
+  const { selectedSprites, setPlay, play } = useContext(SpriteContext);
 
   const checkCollision = (rect1, rect2) => {
     return (
@@ -19,7 +20,7 @@ export default function SpritePlayArea({ sprites, setPlay, play }) {
 
   useEffect(() => {
     let timers = [];
-    let spriteStates = sprites.map((sprite) => {
+    let spriteStates = selectedSprites.map((sprite) => {
       const repeat = sprite?.motions?.some(
         (motion) => motion.motionName === "Repeat"
       );
@@ -45,7 +46,6 @@ export default function SpritePlayArea({ sprites, setPlay, play }) {
             rotate: currentPosition.rotate + (motion.action.rotate ?? 0),
           };
 
-          setPositions((prev) => ({ ...prev, [sprite.id]: currentPosition }));
           setMotions((prev) => ({
             ...prev,
             [sprite.id]: `translate(${currentPosition.x}px, ${currentPosition.y}px) rotate(${currentPosition.rotate}deg)`,
@@ -65,7 +65,7 @@ export default function SpritePlayArea({ sprites, setPlay, play }) {
                 collisionDetectedRef.current = true;
 
                 const otherSprite = spriteStates.find(
-                  (s) => s.id === sprites[i].id
+                  (s) => s.id === selectedSprites[i].id
                 );
                 if (otherSprite) {
                   const tempMotions = [...spriteStates[index].motions];
@@ -95,7 +95,7 @@ export default function SpritePlayArea({ sprites, setPlay, play }) {
       }
     };
 
-    if (play && sprites.length) {
+    if (play && selectedSprites.length) {
       spriteStates.forEach((sprite, index) => {
         if (sprite.motions.length) {
           animateSprite(sprite, index);
@@ -106,7 +106,7 @@ export default function SpritePlayArea({ sprites, setPlay, play }) {
     return () => {
       timers.forEach((timerId) => clearTimeout(timerId));
     };
-  }, [play, sprites]);
+  }, [play, selectedSprites]);
 
   return (
     <div className="h-full w-full flex justify-center flex-col">
@@ -118,7 +118,7 @@ export default function SpritePlayArea({ sprites, setPlay, play }) {
       </div>
       <div className="flex-1 h-full overflow-auto flex justify-center items-center">
         <Suspense fallback={<div>Loading sprites...</div>}>
-          {sprites.map((sprite, index) => (
+          {selectedSprites.map((sprite, index) => (
             <Sprite
               key={sprite.id + "wrapper"}
               ref={(el) => (spriteRefs.current[index] = el)}
@@ -126,7 +126,7 @@ export default function SpritePlayArea({ sprites, setPlay, play }) {
               motion={play ? motions[sprite.id] : ""}
             />
           ))}
-        </Suspense>
+        </Suspense>{" "}
       </div>
     </div>
   );
