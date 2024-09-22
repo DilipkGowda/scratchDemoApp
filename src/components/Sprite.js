@@ -12,7 +12,7 @@ const Sprite = React.forwardRef(({ sprite, motion }, ref) => {
     >
       <img
         src={sprite.sprite}
-        alt="Sprite"
+        alt="SpriteImage"
         className="aspect-square w-[100px] h-[100px]"
       />
     </div>
