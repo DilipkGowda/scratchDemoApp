@@ -21,6 +21,16 @@ export const Motions = [
   },
   {
     id: Math.floor(Math.random() * 100),
+    motionName: "Move x by -50 steps",
+    action: { x: 0, y: 50, rotate: 0 },
+  },
+  {
+    id: Math.floor(Math.random() * 100),
+    motionName: "Move y by -50 steps",
+    action: { x: 0, y: 50, rotate: 0 },
+  },
+  {
+    id: Math.floor(Math.random() * 100),
     motionName: "Move x by 50 y by 30",
     action: { x: 50, y: 30, rotate: 0 },
   },
@@ -31,13 +41,13 @@ export const Motions = [
   },
   {
     id: Math.floor(Math.random() * 100),
-    motionName: "Turn 90 degree",
-    action: { x: 0, y: 0, rotate: 90 },
+    motionName: "Move x by -70 y by -30",
+    action: { x: -50, y: 30, rotate: 0 },
   },
   {
     id: Math.floor(Math.random() * 100),
-    motionName: "Turn 180 degree",
-    action: { x: 0, y: 0, rotate: 180 },
+    motionName: "Turn 90 degree",
+    action: { x: 0, y: 0, rotate: 90 },
   },
   {
     id: Math.floor(Math.random() * 100),

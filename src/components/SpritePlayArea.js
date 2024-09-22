@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, lazy, useContext, Suspense } from "react";
 import { SpriteContext } from "../context/SpriteContext";
+import { deepClone } from "../utils/shared";
 
 const Sprite = lazy(() => import("./Sprite"));
 
@@ -19,6 +20,7 @@ export default function SpritePlayArea() {
   };
 
   useEffect(() => {
+    if (!selectedSprites?.length) return;
     let timers = [];
     let spriteStates = selectedSprites.map((sprite) => {
       const repeat = sprite?.motions?.some(
@@ -30,6 +32,8 @@ export default function SpritePlayArea() {
         repeat,
       };
     });
+
+    console.log("spriteStates", { spriteStates, selectedSprites });
 
     const animateSprite = (sprite, index, currPos) => {
       let totalDelay = 0;
@@ -69,16 +73,19 @@ export default function SpritePlayArea() {
                 );
                 if (otherSprite) {
                   const tempMotions = [...spriteStates[index].motions];
-                  spriteStates[index].motions = [...spriteStates[i].motions];
-                  spriteStates[i].motions = [...tempMotions];
+                  const tempSpriteStates = deepClone(spriteStates);
+                  tempSpriteStates[index].motions = [
+                    ...spriteStates[i].motions,
+                  ];
+                  tempSpriteStates[i].motions = [...tempMotions];
 
-                  animateSprite(spriteStates[index], index, currentPosition);
-                  animateSprite(spriteStates[i], i, currentPosition);
+                  animateSprite(tempSpriteStates[index], index);
+                  animateSprite(tempSpriteStates[i], i);
                 }
 
                 setTimeout(() => {
                   collisionDetectedRef.current = false;
-                }, 1000);
+                }, 100);
               }
             }
           }
@@ -101,6 +108,8 @@ export default function SpritePlayArea() {
           animateSprite(sprite, index);
         }
       });
+    } else   {
+      setMotions({});
     }
 
     return () => {
