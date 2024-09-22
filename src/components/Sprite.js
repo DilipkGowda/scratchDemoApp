@@ -10,11 +10,7 @@ const Sprite = React.forwardRef(({ sprite, motion }, ref) => {
         transition: motion && "transform 1s linear",
       }}
     >
-      <img
-        src={sprite.sprite}
-        alt="SpriteImage"
-        className="aspect-square w-[100px] h-[100px]"
-      />
+      <img src={sprite.sprite} className="aspect-square w-[100px] h-[100px]" />
     </div>
   );
 });
