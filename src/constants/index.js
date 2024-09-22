@@ -46,11 +46,6 @@ export const Motions = [
   },
   {
     id: Math.floor(Math.random() * 100),
-    motionName: "Turn 90 degree",
-    action: { x: 0, y: 0, rotate: 90 },
-  },
-  {
-    id: Math.floor(Math.random() * 100),
     motionName: "Turn 360 degree",
     action: { x: 0, y: 0, rotate: 360 },
   },
