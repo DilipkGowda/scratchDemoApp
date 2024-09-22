@@ -33,73 +33,91 @@ export default function SpritePlayArea() {
       };
     });
 
-    console.log("spriteStates", { spriteStates, selectedSprites });
-
     const animateSprite = (sprite, index, currPos) => {
-      let totalDelay = 0;
       let currentPosition = currPos || { x: 0, y: 0, rotate: 0 };
 
-      sprite.motions.forEach((motion, motionIndex) => {
-        const delay = motionIndex * 1000;
-        totalDelay += delay;
+      const animateStep = (motionIndex) => {
+        if (motionIndex >= sprite.motions.length) {
+          if (sprite.repeat) {
+            animateStep(0);
+          }
+          return;
+        }
 
-        const timerId = setTimeout(() => {
-          currentPosition = {
-            x: currentPosition.x + (motion.action.x ?? 0),
-            y: currentPosition.y + (motion.action.y ?? 0),
-            rotate: currentPosition.rotate + (motion.action.rotate ?? 0),
+        const motion = sprite.motions[motionIndex];
+        const nextPosition = {
+          x: currentPosition.x + (motion.action.x ?? 0),
+          y: currentPosition.y + (motion.action.y ?? 0),
+          rotate: currentPosition.rotate + (motion.action.rotate ?? 0),
+        };
+
+        const duration = 500;
+
+        const startTime = performance.now();
+        const updatePosition = (time) => {
+          const elapsedTime = time - startTime;
+          const progress = Math.min(elapsedTime / duration, 1);
+          const interpolatedPosition = {
+            x:
+              currentPosition.x +
+              (nextPosition.x - currentPosition.x) * progress,
+            y:
+              currentPosition.y +
+              (nextPosition.y - currentPosition.y) * progress,
+            rotate:
+              currentPosition.rotate +
+              (nextPosition.rotate - currentPosition.rotate) * progress,
           };
-
           setMotions((prev) => ({
             ...prev,
-            [sprite.id]: `translate(${currentPosition.x}px, ${currentPosition.y}px) rotate(${currentPosition.rotate}deg)`,
+            [sprite.id]: `translate(${interpolatedPosition.x}px, ${interpolatedPosition.y}px) rotate(${interpolatedPosition.rotate}deg)`,
           }));
-
           const currentSpriteRect =
             spriteRefs.current[index]?.getBoundingClientRect();
-          for (let i = 0; i < spriteRefs.current.length; i++) {
-            if (i !== index && !collisionDetectedRef.current) {
-              const otherSpriteRect =
-                spriteRefs.current[i]?.getBoundingClientRect();
-              if (
-                otherSpriteRect &&
-                currentSpriteRect &&
-                checkCollision(currentSpriteRect, otherSpriteRect)
-              ) {
-                collisionDetectedRef.current = true;
+          if (currentSpriteRect) {
+            for (let i = 0; i < spriteRefs.current.length; i++) {
+              if (i !== index && !collisionDetectedRef.current) {
+                const otherSpriteRect =
+                  spriteRefs.current[i]?.getBoundingClientRect();
 
-                const otherSprite = spriteStates.find(
-                  (s) => s.id === selectedSprites[i].id
-                );
-                if (otherSprite) {
-                  const tempMotions = [...spriteStates[index].motions];
-                  const tempSpriteStates = deepClone(spriteStates);
-                  tempSpriteStates[index].motions = [
-                    ...spriteStates[i].motions,
-                  ];
-                  tempSpriteStates[i].motions = [...tempMotions];
-
-                  animateSprite(tempSpriteStates[index], index);
-                  animateSprite(tempSpriteStates[i], i);
+                if (
+                  otherSpriteRect &&
+                  checkCollision(currentSpriteRect, otherSpriteRect)
+                ) {
+                  collisionDetectedRef.current = true;
+                  const otherSprite = spriteStates.find(
+                    (s) => s.id === selectedSprites[i].id
+                  );
+                  if (otherSprite) {
+                    const tempMotions = [...spriteStates[index].motions];
+                    const tempSpriteStates = deepClone(spriteStates);
+                    tempSpriteStates[index].motions = [
+                      ...spriteStates[i].motions,
+                    ];
+                    tempSpriteStates[i].motions = [...tempMotions];
+                    animateSprite(tempSpriteStates[index], index);
+                    animateSprite(tempSpriteStates[i], i);
+                  }
+                  setTimeout(() => {
+                    collisionDetectedRef.current = false;
+                  }, 100);
                 }
-
-                setTimeout(() => {
-                  collisionDetectedRef.current = false;
-                }, 100);
               }
             }
           }
-        }, totalDelay);
 
-        timers.push(timerId);
-      });
+          if (progress < 1) {
+            window.requestAnimationFrame(updatePosition);
+          } else {
+            currentPosition = nextPosition;
+            animateStep(motionIndex + 1);
+          }
+        };
 
-      if (sprite.repeat) {
-        const repeatTimerId = setTimeout(() => {
-          animateSprite(sprite, index, currentPosition);
-        }, totalDelay);
-        timers.push(repeatTimerId);
-      }
+        window.requestAnimationFrame(updatePosition);
+      };
+
+      animateStep(0);
     };
 
     if (play && selectedSprites.length) {
@@ -108,7 +126,7 @@ export default function SpritePlayArea() {
           animateSprite(sprite, index);
         }
       });
-    } else   {
+    } else {
       setMotions({});
     }
 
