@@ -10,7 +10,6 @@ const SpriteItem = React.memo(({ sprite, index, setNsprites, nsprites }) => {
       <div className="overflow-y-auto p-2 relative">
         <img
           src={sprite.sprite}
-          alt="Sprite Image"
           className="aspect-square w-[100px] h-[100px]"
         />
       </div>
