@@ -11,10 +11,10 @@ export default function SpritePlayArea() {
   const { selectedSprites, setPlay, play } = useContext(SpriteContext);
 
   const checkCollision = (rect1, rect2) => {
-    const buffer = 40
+    const buffer = 40;
     return (
       rect1.x + buffer < rect2.x + rect2.width &&
-      rect1.x + rect1.width > rect2.x + buffer&&
+      rect1.x + rect1.width > rect2.x + buffer &&
       rect1.y + buffer < rect2.y + rect2.height &&
       rect1.y + rect1.height > rect2.y + buffer
     );
@@ -97,16 +97,15 @@ export default function SpritePlayArea() {
                     ];
                     tempSpriteStates[i].motions = [...tempMotions];
                     setTimeout(() => {
-                      animateSprite(tempSpriteStates[index], index); // Delay re-animating after collision
+                      animateSprite(tempSpriteStates[index], index);
                       animateSprite(tempSpriteStates[i], i);
-                    }, 100);  // Add a delay to break the infinite recursion cycle
-    
+                    }, 100);
                   }
                   const timerId = setTimeout(() => {
                     collisionDetectedRef.current = false;
                   }, 100);
 
-                  timers.push(timerId)
+                  timers.push(timerId);
                 }
               }
             }
@@ -118,10 +117,6 @@ export default function SpritePlayArea() {
             currentPosition = nextPosition;
             animateStep(motionIndex + 1);
           }
-
-            // if (sprite.repeat) {
-            //   animateStep(0);
-            // }
         };
 
         window.requestAnimationFrame(updatePosition);
